@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>California Gold Rush - Untold Stories</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            color: #2c1810;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        /* Video Background */
+        .video-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: -2;
+            overflow: hidden;
+        }
+
+        .video-background video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.7;
+            filter: sepia(20%) brightness(0.8);
+        }
+
+        .video-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: linear-gradient(
+                45deg,
+                rgba(139, 69, 19, 0.1) 0%,
+                rgba(218, 165, 32, 0.05) 50%,
+                rgba(160, 82, 45, 0.1) 100%
+            );
+            z-index: -1;
+        }
+
+        /* Header */
+        header {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .hero-content {
+            max-width: 800px;
+            padding: 2rem;
+            background: rgba(255, 248, 220, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(218, 165, 32, 0.3);
+        }
+
+        .hero-content h1 {
+            font-size: 3.5rem;
+            color: #8B4513;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            font-weight: bold;
+        }
+
+        .hero-content p {
+            font-size: 1.3rem;
+            color: #2c1810;
+            line-height: 1.6;
+            font-style: italic;
+        }
+
+        /* Main Content */
+        main {
+            position: relative;
+            z-index: 1;
+            background: linear-gradient(
+                to bottom,
+                rgba(255, 248, 220, 0.95) 0%,
+                rgba(245, 245, 220, 0.98) 100%
+            );
+            min-height: 100vh;
+        }
+
+        /* Story Sections */
+        .story-section {
+            min-height: 100vh;
+            padding: 8rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .story-content {
+            max-width: 900px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 4rem;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            border: 3px solid rgba(218, 165, 32, 0.4);
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s ease-out;
+        }
+
+        .story-content.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .story-content h2 {
+            font-size: 2.8rem;
+            color: #8B4513;
+            margin-bottom: 2rem;
+            text-align: center;
+            border-bottom: 3px solid #DAA520;
+            padding-bottom: 1rem;
+        }
+
+        .story-content p {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+            color: #2c1810;
+        }
+
+        .story-content .highlight {
+            background: linear-gradient(120deg, rgba(218, 165, 32, 0.2) 0%, rgba(218, 165, 32, 0.1) 100%);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        /* Decorative Elements */
+        .section-decorator {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            opacity: 0.1;
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+
+        .decorator-pickaxe {
+            top: 10%;
+            right: 10%;
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M20 80 L80 20 M15 75 L25 85 M75 15 L85 25" stroke="%23DAA520" stroke-width="3" fill="none"/></svg>');
+        }
+
+        .decorator-mission {
+            bottom: 10%;
+            left: 10%;
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect x="20" y="60" width="60" height="30" fill="%23DAA520"/><polygon points="20,60 50,20 80,60" fill="%23DAA520"/><circle cx="50" cy="40" r="5" fill="%23fff"/></svg>');
+        }
+
+        /* Scroll Progress Indicator */
+        .scroll-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(218, 165, 32, 0.3);
+            z-index: 100;
+        }
+
+        .scroll-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #DAA520, #B8860B);
+            width: 0%;
+            transition: width 0.1s ease;
+        }
+
+        /* Navigation Dots */
+        .nav-dots {
+            position: fixed;
+            right: 2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 50;
+        }
+
+        .nav-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(218, 165, 32, 0.4);
+            margin: 1rem 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-dot.active {
+            background: #DAA520;
+            transform: scale(1.2);
+        }
+
+        /* Footer */
+        .footer {
+            background: linear-gradient(135deg, rgba(139, 69, 19, 0.95) 0%, rgba(160, 82, 45, 0.9) 100%);
+            color: #F5F5DC;
+            padding: 4rem 2rem 2rem;
+            text-align: center;
+            border-top: 4px solid #DAA520;
+            position: relative;
+            z-index: 1;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer h3 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            color: #DAA520;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .footer p {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .footer-divider {
+            width: 100px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #DAA520, transparent);
+            margin: 2rem auto;
+        }
+
+        .footer-quote {
+            font-style: italic;
+            font-size: 1.1rem;
+            opacity: 0.8;
+            margin-top: 2rem;
+        }
+
+        .footer-signature {
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(218, 165, 32, 0.3);
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .hero-content h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero-content p {
+                font-size: 1.1rem;
+            }
+            
+            .story-content {
+                padding: 2rem;
+                margin: 1rem;
+            }
+            
+            .story-content h2 {
+                font-size: 2.2rem;
+            }
+            
+            .story-section {
+                padding: 4rem 1rem;
+            }
+            
+            .nav-dots {
+                display: none;
+            }
+
+            .footer h3 {
+                font-size: 2rem;
+            }
+
+            .footer p {
+                font-size: 1.1rem;
+            }
+        }
+
+        /* Animation for text reveal */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .story-content.visible p {
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+
+        .story-content.visible p:nth-child(2) { animation-delay: 0.1s; }
+        .story-content.visible p:nth-child(3) { animation-delay: 0.2s; }
+        .story-content.visible p:nth-child(4) { animation-delay: 0.3s; }
+    </style>
+</head>
+<body>
+    <!-- Video Background -->
+    <div class="video-background">
+        <video autoplay muted loop playsinline>
+            <source src="data:video/mp4;base64," type="video/mp4">
+            <!-- Fallback for when video fails to load -->
+        </video>
+    </div>
+    <div class="video-overlay"></div>
+
+    <!-- Scroll Progress -->
+    <div class="scroll-progress">
+        <div class="scroll-progress-bar"></div>
+    </div>
+
+    <!-- Navigation Dots -->
+    <div class="nav-dots">
+        <div class="nav-dot active" data-section="0"></div>
+        <div class="nav-dot" data-section="1"></div>
+        <div class="nav-dot" data-section="2"></div>
+        <div class="nav-dot" data-section="3"></div>
+        <div class="nav-dot" data-section="4"></div>
+        <div class="nav-dot" data-section="5"></div>
+    </div>
+
+    <!-- Header -->
+    <header id="hero">
+        <div class="hero-content">
+            <h1>California Gold Rush</h1>
+            <p>Uncovering the untold stories of those who shaped the Golden State</p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Spanish Missions Section -->
+        <section class="story-section" id="section-1">
+            <div class="story-content">
+                <h2>The Mission Legacy</h2>
+                <p>Long before the cry of "Gold!" echoed through the Sierra Nevada, <span class="highlight">Spanish missions</span> had already transformed California's landscape. These religious outposts, established by Franciscan friars, created the first European settlements and agricultural systems.</p>
+                <p>When gold fever struck in 1848, the mission lands became staging grounds for prospectors. The vast ranchos, once granted to Spanish and Mexican settlers, were suddenly overrun by fortune seekers who cared little for established property rights.</p>
+                <p>How did the collision between Spanish colonial heritage and American gold rush ambition reshape California's cultural identity forever?</p>
+            </div>
+            <div class="section-decorator decorator-mission"></div>
+        </section>
+
+        <!-- Native American Section -->
+        <section class="story-section" id="section-2">
+            <div class="story-content">
+                <h2>The Original Californians</h2>
+                <p>For thousands of years, <span class="highlight">Native American tribes</span> like the Miwok, Maidu, and Yokuts had called these gold-bearing lands home. They knew of the precious metal but valued it differently than the Europeans who would soon arrive.</p>
+                <p>The Gold Rush brought devastating consequences to indigenous peoples. Mining operations destroyed sacred sites, polluted rivers, and displaced entire communities. Many Native Americans were forced into labor or driven from their ancestral territories.</p>
+                <p>What stories of resilience and survival emerged from this cultural catastrophe, and how do they challenge our understanding of the Gold Rush narrative?</p>
+            </div>
+            <div class="section-decorator decorator-pickaxe"></div>
+        </section>
+
+        <!-- Chinese Immigrants Section -->
+        <section class="story-section" id="section-3">
+            <div class="story-content">
+                <h2>Dreams Across the Pacific</h2>
+                <p>They called California "Gam Saan" - the Gold Mountain. <span class="highlight">Chinese immigrants</span> arrived in waves, fleeing poverty and political turmoil in their homeland, drawn by tales of golden opportunity in the American West.</p>
+                <p>Facing discrimination and exclusion from the richest claims, Chinese miners often worked abandoned sites with remarkable ingenuity. They developed innovative techniques like hydraulic mining and created tight-knit communities that preserved their cultural traditions.</p>
+                <p>How did these determined immigrants transform not just mining practices, but the very fabric of California society, despite facing systematic prejudice and violence?</p>
+            </div>
+        </section>
+
+        <!-- Irish Police Force Section -->
+        <section class="story-section" id="section-4">
+            <div class="story-content">
+                <h2>Keeping Order in Chaos</h2>
+                <p>As boomtowns exploded overnight, lawlessness threatened to consume California. Enter the <span class="highlight">Irish immigrants</span> who found their calling not in mining, but in maintaining order as police officers, sheriffs, and vigilante leaders.</p>
+                <p>Fresh from the Irish Potato Famine, these immigrants brought their own struggles with poverty and discrimination. Yet they carved out a crucial role in Gold Rush society, often serving as the thin blue line between civilization and anarchy.</p>
+                <p>What drove these newcomers to choose law enforcement over gold seeking, and how did their efforts shape the justice system of the emerging American West?</p>
+            </div>
+        </section>
+
+        <!-- Military Forts Section -->
+        <section class="story-section" id="section-5">
+            <div class="story-content">
+                <h2>Guardians of the Frontier</h2>
+                <p>Strategic <span class="highlight">military forts</span> like Fort Point and the Presidio became vital anchors of federal authority during the chaotic Gold Rush years. These installations protected harbors, stored government gold, and provided a sense of permanent American presence.</p>
+                <p>Soldiers stationed at these forts witnessed the transformation of sleepy Mexican California into a bustling American state. They dealt with conflicts between miners, protected supply routes, and maintained order when civilian authorities proved inadequate.</p>
+                <p>How did these military outposts serve as both symbols of conquest and catalysts for California's rapid integration into the United States?</p>
+            </div>
+        </section>
+
+        <!-- Conclusion Section -->
+        <section class="story-section" id="section-6">
+            <div class="story-content">
+                <h2>Legacy of the Rush</h2>
+                <p>The California Gold Rush lasted barely a decade, but its impact reverberates through American history. It accelerated westward expansion, transformed California from a remote territory into a thriving state, and created the template for the American Dream.</p>
+                <p>Yet behind the mythology of individual fortune and manifest destiny lies a more complex story - one of cultural collision, environmental destruction, social innovation, and human resilience across all communities.</p>
+                <p>As we reflect on this pivotal moment, what lessons can we draw about opportunity, justice, and the true cost of rapid change in American society?</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <h3>The Story Continues</h3>
+            <p>Every piece of California soil tells a story. Every creek once ran with the dreams of countless souls seeking fortune and freedom. The echoes of pickaxes and the whispers of hope still resonate in the Sierra Nevada winds.</p>
+            
+            <div class="footer-divider"></div>
+            
+            <p>The California Gold Rush transformed not just a landscape, but the very soul of America. From the Spanish missions to the bustling Chinatowns, from the Irish constables to the displaced Native tribes, each community left an indelible mark on the Golden State.</p>
+            
+            <div class="footer-quote">
+                <p>"The past is never dead. It's not even past." - William Faulkner</p>
+            </div>
+            
+            <div class="footer-signature">
+                <p>A journey through California's Gold Rush history | Portfolio piece exploring untold narratives</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Intersection Observer for scroll-triggered animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        // Observe all story content elements
+        document.querySelectorAll('.story-content').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Navigation dots functionality
+        const navDots = document.querySelectorAll('.nav-dot');
+        const sections = document.querySelectorAll('section, header');
+
+        navDots.forEach((dot, index) => {
+            dot.addEventListener('click', () => {
+                const targetSection = index === 0 ? document.getElementById('hero') : sections[index];
+                targetSection.scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+
+        // Update active navigation dot on scroll
+        const sectionObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const sectionIndex = Array.from(sections).indexOf(entry.target);
+                    navDots.forEach(dot => dot.classList.remove('active'));
+                    if (navDots[sectionIndex]) {
+                        navDots[sectionIndex].classList.add('active');
+                    }
+                }
+            });
+        }, { threshold: 0.5 });
+
+        sections.forEach(section => {
+            sectionObserver.observe(section);
+        });
+
+        // Scroll progress bar
+        const updateScrollProgress = () => {
+            const scrolled = window.pageYOffset;
+            const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+            const progress = (scrolled / maxScroll) * 100;
+            document.querySelector('.scroll-progress-bar').style.width = progress + '%';
+        };
+
+        window.addEventListener('scroll', updateScrollProgress);
+
+        // Enhanced video background with fallback
+        const video = document.querySelector('.video-background video');
+        const videoSources = [
+            'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+            'https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4'
+        ];
+
+        // Create a more immersive animated background when video fails
+        if (!video.src || video.src.includes('data:video')) {
+            const videoContainer = document.querySelector('.video-background');
+            videoContainer.innerHTML = `
+                <div style="
+                    width: 100%;
+                    height: 100%;
+                    background: linear-gradient(45deg, 
+                        rgba(139, 69, 19, 0.3) 0%,
+                        rgba(218, 165, 32, 0.2) 25%,
+                        rgba(160, 82, 45, 0.3) 50%,
+                        rgba(218, 165, 32, 0.2) 75%,
+                        rgba(139, 69, 19, 0.3) 100%);
+                    background-size: 400% 400%;
+                    animation: gradientShift 15s ease infinite;
+                "></div>
+            `;
+            
+            // Add the animation keyframes
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes gradientShift {
+                    0% { background-position: 0% 50%; }
+                    50% { background-position: 100% 50%; }
+                    100% { background-position: 0% 50%; }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        // Smooth scrolling enhancement
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add subtle parallax effect to decorative elements
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const decorators = document.querySelectorAll('.section-decorator');
+            decorators.forEach(decorator => {
+                const speed = 0.5;
+                decorator.style.transform = `translateY(${scrolled * speed}px)`;
+            });
+        });
+    </script>
+</body>
+</html>
