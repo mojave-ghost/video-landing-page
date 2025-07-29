@@ -190,7 +190,57 @@
             transition: width 0.1s ease;
         }
 
-        /* Navigation Dots */
+        /* Audio Control Button */
+        .audio-control {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            background: rgba(139, 69, 19, 0.9);
+            border: 3px solid rgba(218, 165, 32, 0.8);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            z-index: 200;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .audio-control:hover {
+            background: rgba(139, 69, 19, 1);
+            border-color: #DAA520;
+            transform: scale(1.1);
+            box-shadow: 0 12px 35px rgba(218, 165, 32, 0.4);
+        }
+
+        .audio-control svg {
+            width: 24px;
+            height: 24px;
+            fill: #DAA520;
+            transition: all 0.3s ease;
+        }
+
+        .audio-control.muted svg {
+            fill: #cd5c5c;
+        }
+
+        /* Audio control pulse animation when unmuted */
+        .audio-control:not(.muted) {
+            animation: audioPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes audioPulse {
+            0%, 100% { 
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3), 0 0 0 0 rgba(218, 165, 32, 0.4);
+            }
+            50% { 
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3), 0 0 0 8px rgba(218, 165, 32, 0.1);
+            }
+        }
         .nav-dots {
             position: fixed;
             right: 2rem;
@@ -303,6 +353,18 @@
             .footer p {
                 font-size: 1.1rem;
             }
+
+            .audio-control {
+                width: 50px;
+                height: 50px;
+                top: 1rem;
+                right: 1rem;
+            }
+
+            .audio-control svg {
+                width: 20px;
+                height: 20px;
+            }
         }
 
         /* Animation for text reveal */
@@ -329,9 +391,24 @@
 <body>
     <!-- Video Background -->
     <div class="video-background">
-        <video autoplay loop playsinline>
+        <video autoplay loop playsinline preload="auto" id="backgroundVideo">
             <source src="./video/video-fly-over-california-1849.mp4" type="video/mp4">
-            <!-- Fallback for when video fails to load -->
+            <source src="./video/video-fly-over-california-1849.webm" type="video/webm">
+            <!-- Fallback content when video doesn't load -->
+            <div class="video-fallback">
+                <div style="
+                    width: 100%;
+                    height: 100vh;
+                    background: linear-gradient(45deg, 
+                        rgba(139, 69, 19, 0.3) 0%,
+                        rgba(218, 165, 32, 0.2) 25%,
+                        rgba(160, 82, 45, 0.3) 50%,
+                        rgba(218, 165, 32, 0.2) 75%,
+                        rgba(139, 69, 19, 0.3) 100%);
+                    background-size: 400% 400%;
+                    animation: gradientShift 15s ease infinite;
+                "></div>
+            </div>
         </video>
     </div>
     <div class="video-overlay"></div>
@@ -340,6 +417,18 @@
     <div class="scroll-progress">
         <div class="scroll-progress-bar"></div>
     </div>
+
+    <!-- Audio Control Button -->
+    <button class="audio-control" id="audioControl" title="Toggle Audio">
+        <!-- Volume On Icon -->
+        <svg class="volume-on" viewBox="0 0 24 24">
+            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+        </svg>
+        <!-- Volume Off Icon (hidden by default) -->
+        <svg class="volume-off" viewBox="0 0 24 24" style="display: none;">
+            <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>
+        </svg>
+    </button>
 
     <!-- Navigation Dots -->
     <div class="nav-dots">
@@ -502,15 +591,82 @@
 
         window.addEventListener('scroll', updateScrollProgress);
 
-        // Enhanced video background with fallback
-        const video = document.querySelector('.video-background video');
-        const videoSources = [
-            'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-            'https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4'
-        ];
+        // Enhanced video background with audio controls
+        const video = document.querySelector('#backgroundVideo');
+        const audioControl = document.querySelector('#audioControl');
+        const volumeOnIcon = audioControl.querySelector('.volume-on');
+        const volumeOffIcon = audioControl.querySelector('.volume-off');
+        
+        let hasUserInteracted = false;
+        
+        // Handle user interaction requirement for audio
+        function enableAudioAfterInteraction() {
+            if (!hasUserInteracted) {
+                hasUserInteracted = true;
+                video.muted = false;
+                video.volume = 0.6; // Set comfortable volume level
+                updateAudioButton();
+                console.log('Audio enabled after user interaction');
+            }
+        }
 
-        // Create a more immersive animated background when video fails
-        if (!video.src || video.src.includes('data:video')) {
+        // Update audio button appearance
+        function updateAudioButton() {
+            if (video.muted) {
+                audioControl.classList.add('muted');
+                volumeOnIcon.style.display = 'none';
+                volumeOffIcon.style.display = 'block';
+                audioControl.title = 'Unmute Audio';
+            } else {
+                audioControl.classList.remove('muted');
+                volumeOnIcon.style.display = 'block';
+                volumeOffIcon.style.display = 'none';
+                audioControl.title = 'Mute Audio';
+            }
+        }
+
+        // Audio control button functionality
+        audioControl.addEventListener('click', (e) => {
+            e.preventDefault();
+            
+            if (!hasUserInteracted) {
+                enableAudioAfterInteraction();
+            } else {
+                video.muted = !video.muted;
+                updateAudioButton();
+            }
+        });
+
+        // Enable audio on any user interaction
+        ['click', 'keydown', 'touchstart'].forEach(event => {
+            document.addEventListener(event, enableAudioAfterInteraction, { once: true });
+        });
+        
+        video.addEventListener('loadstart', () => {
+            console.log('Video loading started...');
+        });
+        
+        video.addEventListener('canplay', () => {
+            console.log('Video can start playing');
+            video.style.opacity = '0.7';
+            
+            // Try to play with audio (will be muted initially due to browser policy)
+            video.play().then(() => {
+                console.log('Video started playing');
+                updateAudioButton();
+            }).catch(error => {
+                console.log('Autoplay prevented:', error);
+                // Fallback: ensure video plays muted
+                video.muted = true;
+                video.play();
+                updateAudioButton();
+            });
+        });
+        
+        video.addEventListener('error', (e) => {
+            console.error('Video failed to load:', e);
+            console.log('Falling back to animated gradient background');
+            
             const videoContainer = document.querySelector('.video-background');
             videoContainer.innerHTML = `
                 <div style="
@@ -527,17 +683,39 @@
                 "></div>
             `;
             
-            // Add the animation keyframes
-            const style = document.createElement('style');
-            style.textContent = `
-                @keyframes gradientShift {
-                    0% { background-position: 0% 50%; }
-                    50% { background-position: 100% 50%; }
-                    100% { background-position: 0% 50%; }
+            // Hide audio control if video fails
+            audioControl.style.display = 'none';
+            
+            // Add the animation keyframes if they don't exist
+            if (!document.querySelector('#gradientAnimation')) {
+                const style = document.createElement('style');
+                style.id = 'gradientAnimation';
+                style.textContent = `
+                    @keyframes gradientShift {
+                        0% { background-position: 0% 50%; }
+                        50% { background-position: 100% 50%; }
+                        100% { background-position: 0% 50%; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+        });
+
+        // Check if video source exists
+        fetch('./video/video-fly-over-california-1849.mp4')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Video file not found');
                 }
-            `;
-            document.head.appendChild(style);
-        }
+                console.log('Video file found successfully');
+            })
+            .catch(error => {
+                console.error('Video file check failed:', error);
+                video.dispatchEvent(new Event('error'));
+            });
+
+        // Initialize audio button state
+        updateAudioButton();
 
         // Smooth scrolling enhancement
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
