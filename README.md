@@ -3,7 +3,7 @@
 An immersive web experience that brings the untold stories of the 1849 California Gold Rush to life through cinematic video backgrounds, scroll-triggered storytelling, and elegant vintage design.
 
 [![Live Demo](https://img.shields.io/badge/Live-Demo-gold?style=for-the-badge)](https://video-landing-page-0001.netlify.app/)
-[![GitHub](https://img.shields.io/badge/GitHub-Repository-8B4513?style=for-the-badge&logo=github)](https://github.com/yourusername/video-landing-page)
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-8B4513?style=for-the-badge&logo=github)](https://github.com/mojave-ghost/video-landing-page)
 
 ## 🎬 Features
 
